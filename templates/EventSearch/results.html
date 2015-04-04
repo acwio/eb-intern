@@ -1,10 +1,32 @@
-<!DOCTYPE html>
-<html>
-<head lang="en">
-    <meta charset="UTF-8">
-    <title></title>
-</head>
-<body>
+{% extends 'EventSearch/base.html' %}
 
-</body>
-</html>
+{% block content %}
+
+<div id="wrap">
+    <div class="index_header">
+        <img id="eb_home_logo" src="{{ STATIC_URL }}img/eb_card_medium.png">
+    </div>
+    <br>
+
+    <div class="container">
+        <div class="col-md-12" role="main">
+            <table id="eb_results">
+                <tbody>
+                {% for event in events %}
+                    <tr>
+                        <td><strong>{{ event.name.text }}</strong></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            </div>
+            <br />
+
+            <div class="row" style="text-align: center">
+                <a href="/event/">Browse all events</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
