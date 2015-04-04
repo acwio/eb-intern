@@ -1,5 +1,5 @@
 """
-Django settings for britern project.
+Django settings for EventLibrary project.
 
 For more information on this file, see
 https://docs.djangoproject.com/en/1.6/topics/settings/
@@ -17,7 +17,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'e(1f_vk8rg(2%#vflk51go%*e9hyg7!vee!$tiz1bsmc(uinlg'
+SECRET_KEY = '%$(yhi(zvrek(w(ga0l%8q3wr8#+um2_ppz*dvk$2f)1igz@n7'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -30,12 +30,16 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = (
+    # Default Apps
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # Custom Apps
+    'EventSearch',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -47,9 +51,9 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'britern.urls'
+ROOT_URLCONF = 'EventLibrary.urls'
 
-WSGI_APPLICATION = 'britern.wsgi.application'
+WSGI_APPLICATION = 'EventLibrary.wsgi.application'
 
 
 # Database
@@ -75,8 +79,21 @@ USE_L10N = True
 
 USE_TZ = True
 
+TEMPLATE_DIRS = (
+    os.path.join(os.path.dirname(__file__), '../templates/'),
+)
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
+STATIC_ROOT = ''
 
 STATIC_URL = '/static/'
+
+STATICFILES_DIRS = (
+)
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+)

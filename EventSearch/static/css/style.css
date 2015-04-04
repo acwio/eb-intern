@@ -1,0 +1,9 @@
+.index_header, .eb_footer, #form_wrapper {
+    text-align: center;
+}
+
+
+#form_wrapper {
+    width: 450px;
+    margin: 0 auto;
+}

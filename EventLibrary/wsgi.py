@@ -1,5 +1,5 @@
 """
-WSGI config for britern project.
+WSGI config for EventLibrary project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
@@ -8,7 +8,7 @@ https://docs.djangoproject.com/en/1.6/howto/deployment/wsgi/
 """
 
 import os
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "britern.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "EventLibrary.settings")
 
 from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()
