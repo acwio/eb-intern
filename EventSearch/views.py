@@ -16,8 +16,16 @@ def index(request):
     # decode the response in JSON
     response = raw_response.json()
 
+    # delete prior rel_events session variable if it exists
+    if 'rel_events' in request.session:
+        del request.session['rel_events']
+
+    # delete prior all_events session variable if it exists
+    if 'all_events' in request.session:
+        del request.session['all_events']
+
     # delete prior categories session variable if it exists
-    if request.session['categories']:
+    if 'categories' in request.session:
         del request.session['categories']
 
     # build and store dictionary for mapping id to category name in user session
@@ -28,8 +36,8 @@ def index(request):
 
 
 def display_events(request):
-    # verify the type of request
-    if request.GET:
+    # verify the presence of any category selections
+    if any(cat in request.GET for cat in ('cat1', 'cat2', 'cat3')):
         # View triggered with category selections
         # (example: eventbrite.com/events/?cat1=103&cat2=101&cat3=110)
 
@@ -42,21 +50,26 @@ def display_events(request):
                 or request.GET['cat2'] == request.GET['cat3']:
             return render(request, 'EventSearch/index.html', {'form_error': 'Error: Selections must be unique.'})
 
-        # request the event listing via the eventbrite api
-        raw_response = requests.get("https://www.eventbriteapi.com/v3/events", params={'token': 'BKKRDKVUVRC5WG4HAVLT'})
+        # if a rel_events session variable exists, retrieve the relevant events via API
+        if not 'rel_events' in request.session:
+            # request the event listing via the eventbrite api
+            raw_response = requests.get("https://www.eventbriteapi.com/v3/events", params={'token': 'BKKRDKVUVRC5WG4HAVLT'})
 
-        # decode the response in JSON
-        response = raw_response.json()
+            # decode the response in JSON
+            response = raw_response.json()
 
-        # filter relevant events in the response by category id
-        rel_ids = [request.GET['cat1'], request.GET['cat2'], request.GET['cat3']]
-        rel_events_list = [event for id in rel_ids for event in response['events'] if id == event['category_id']]
+            # filter relevant events in the response by category id
+            rel_ids = [request.GET['cat1'], request.GET['cat2'], request.GET['cat3']]
+            rel_events_list = [event for id in rel_ids for event in response['events'] if id == event['category_id']]
 
-        # set-up the paginator to display 5 events per page
-        paginator = Paginator(rel_events_list, 5)
+            # store the filtered list in the user's session
+            request.session['rel_events'] = rel_events_list
 
         # get the specified page number
         page = request.GET.get('page')
+
+        # set-up the paginator to display 5 relevant events per page
+        paginator = Paginator(request.session['rel_events'], 5)
 
         # try to paginate the list of relevant events
         try:
@@ -67,8 +80,6 @@ def display_events(request):
         except EmptyPage:
             # if the specified page number is out of range, render last page.
             rel_events = paginator.page(paginator.num_pages)
-
-        print rel_events
 
         # render with the relevant events with the names and ids of the categories
         return render(request, 'EventSearch/results.html', {'events': rel_events,
@@ -84,14 +95,18 @@ def display_events(request):
         # View triggered by direct URL access
         # (example: eventbrite.com/events)
 
-        # request each of the categories via the eventbrite api
-        raw_response = requests.get("https://www.eventbriteapi.com/v3/events", params={'token': 'BKKRDKVUVRC5WG4HAVLT'})
+        if not 'all_events' in request.session:
+            # request each of the categories via the eventbrite api
+            raw_response = requests.get("https://www.eventbriteapi.com/v3/events", params={'token': 'BKKRDKVUVRC5WG4HAVLT'})
 
-        # decode the response in JSON
-        response = raw_response.json()
+            # decode the response in JSON
+            response = raw_response.json()
+
+            # store the events in the user's session
+            request.session['all_events'] = response['events']
 
         # set-up the paginator to display 5 events per page
-        paginator = Paginator(response['events'], 5)
+        paginator = Paginator(request.session['all_events'], 5)
 
         # get the specified page number
         page = request.GET.get('page')
@@ -109,4 +124,4 @@ def display_events(request):
 
         # render with all events
         return render(request, 'EventSearch/results.html', {'events': all_events,
-                                                            'num_events': paginator.count})
+                                                            'event_count': paginator.count})
