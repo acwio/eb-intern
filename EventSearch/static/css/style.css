@@ -39,3 +39,8 @@
 #eb-results tbody tr {
     margin-bottom: 10px;
 }
+
+.current {
+    padding-left: 15px;
+    padding-right: 15px;
+}

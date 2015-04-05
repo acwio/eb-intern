@@ -64,15 +64,23 @@
         <center>
         <span class="step-links">
             {% if events.has_previous %}
-                [<a href="?cat1={{ cat1_id }}&cat2={{ cat2_id }}&cat3={{ cat3_id }}&page={{ events.previous_page_number }}">Previous</a>]
+                {% if cat1_id and cat2_id and cat3_id %}
+                    [<a href="?cat1={{ cat1_id }}&cat2={{ cat2_id }}&cat3={{ cat3_id }}&page={{ events.previous_page_number }}">Previous</a>]
+                {% else %}
+                    [<a href="?page={{ events.previous_page_number }}">Previous</a>]
+                {% endif %}
             {% endif %}
 
             <span class="current">
-                Page {{ events.number }} of {{ events.paginator.num_pages }}.
+                <strong>Page {{ events.number }} of {{ events.paginator.num_pages }}</strong>
             </span>
 
             {% if events.has_next %}
+                {% if cat1_id and cat2_id and cat3_id %}
                 [<a href="?cat1={{ cat1_id }}&cat2={{ cat2_id }}&cat3={{ cat3_id }}&page={{ events.next_page_number }}">Next</a>]
+                {% else %}
+                    [<a href="?page={{ events.next_page_number }}">Next</a>]
+                {% endif %}
             {% endif %}
         </span>
         </center>
@@ -82,7 +90,7 @@
         <br />
         <hr />
             <div class="row" style="text-align: center">
-                <a href="/event/">Browse all events</a>
+                <a href="/events/">Browse all events</a>
             </div>
         </div>
     </div>
