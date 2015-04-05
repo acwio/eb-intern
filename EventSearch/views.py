@@ -2,10 +2,11 @@ from django.shortcuts import render
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import requests
 
-def getCategoryDict():
+def getCategoryList(request):
     '''
-    Retrieves category listing via eventbrite api and builds a mapping of category id to category name
-    :return: a dictionary of {category id : category name}
+    Retrieves category listing via eventbrite api, builds a mapping of category id to category name into
+    the user's session.
+    :return: a list of categories in JSON format.
     '''
     # request each of the categories via the eventbrite api
     raw_response = requests.get("https://www.eventbriteapi.com/v3/categories", params={'token': 'BKKRDKVUVRC5WG4HAVLT'})
@@ -13,8 +14,11 @@ def getCategoryDict():
     # decode the response in JSON
     response = raw_response.json()
 
-    # build and return dictionary for mapping id to category name in user session
-    return {cat['id']: cat['name'] for cat in response['categories']}
+    # build the dictionary for mapping id to category name in user session
+    request.session['categories'] = {cat['id']: cat['name'] for cat in response['categories']}
+
+    # return the categories list
+    return response['categories']
 
 
 def getEventList(**args):
@@ -38,7 +42,7 @@ def getEventList(**args):
          # filter relevant events in the response by category id and return as a list
         return [event for id in rel_ids for event in response['events'] if id == event['category_id']]
 
-    # otherwise, return all the events
+    # otherwise, return a list of all events
     return response['events']
 
 
@@ -63,10 +67,10 @@ def index(request):
         del request.session['categories']
 
     # build and store dictionary for mapping id to category name in user session
-    request.session['categories'] = getCategoryDict()
+    categories = getCategoryList(request)
 
     # render the homepage with a listing of the retrieved categories
-    return render(request, 'EventSearch/index.html', {'categories': request.session['categories']})
+    return render(request, 'EventSearch/index.html', {'categories': categories})
 
 
 def display_events(request):
@@ -91,9 +95,9 @@ def display_events(request):
         # verify that each category exists in the categories session variable
         if not all(cat in request.session['categories'] for cat in rel_ids):
             # retrieve updated listing
-            request.session['categories'] = getCategoryDict()
+            categories = getCategoryList(request)
 
-            return render(request, 'EventSearch/index.html', {'categories': request.session['categories'],
+            return render(request, 'EventSearch/index.html', {'categories': categories,
                                                               'form_error': 'Error: One or more of the selected '
                                                                             'categories no longer exists.'})
 
