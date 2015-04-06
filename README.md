@@ -21,29 +21,29 @@ UnitTests have been implemented for every possible scenario of acceptable and un
  
 # List of Unit Tests
 1. Validate request to Homepage / Index View
-+ Expected Behavior: Render homepage. 
+  * Expected Behavior: Render homepage. 
 2. Validate request to /events/ without selected categories.
-+ Expected Behavior: Render paginated listing of all events.
+  * Expected Behavior: Render paginated listing of all events.
 3. Validate request to /events/ without selected categories and a specific page number.
-+ Expected Behavior: Render specified page of listing of all events.
+  * Expected Behavior: Render specified page of listing of all events.
 4. Validate request to /events/ without selected categories and a page number that is out of range.
-+ Expected Behavior: Render last page of listing of all events.
+  * Expected Behavior: Render last page of listing of all events.
 5. Validate request to /events/ without selected categories and a page number that is not a number.
-+ Expected Behavior: Render first page of listing of all events.
+  * Expected Behavior: Render first page of listing of all events.
 6. Validate request to /events/ with three valid categories.
-+ Expected Behavior: Render paginated and filtered listing of all events. (HTTP Response 200)
+  * Expected Behavior: Render paginated and filtered listing of all events. (HTTP Response 200)
 7. Validate request to /events/ with three valid categories. and a specific page number.
-+ Expected Behavior: Render specified page of listing of filtered events.
+  * Expected Behavior: Render specified page of listing of filtered events.
 8. Validate request to /events/ with three valid categories. and a page number that is out of range.
-+ Expected Behavior: Render last page of listing of filtered events.
+  * Expected Behavior: Render last page of listing of filtered events.
 9. Validate request to /events/ with three valid categories. and a page number that is not a number.
-+ Expected Behavior: Render first page of listing of filtered events.
+  * Expected Behavior: Render first page of listing of filtered events.
 10. Validate request /events/ with only two valid categories.
-+ Expected Behavior: Render homepage / index with relevant error.
+  * Expected Behavior: Render homepage / index with relevant error.
 11. Validate request to /events/ with three valid categories, two of which are the same category.
-+ Expected Behavior: Render homepage / index with relevant error.
+  * Expected Behavior: Render homepage / index with relevant error.
 12. Validate request to /events/ with three categories, one of which is invalid.
-+ Expected Behavior: Render homepage / index with relevant error.
+  * Expected Behavior: Render homepage / index with relevant error.
  
 ## Author
 Alex C. Williams [(https://github.com/csalexwilliams/)](https://github.com/csalexwilliams/)
