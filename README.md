@@ -19,5 +19,24 @@ events" at the bottom of the homepage or the results page.
 UnitTests have been implemented for every possible scenario of acceptable and unacceptable input. To run this project's
  tests, navigate to the project directory and run: `python manage.py tests`
  
+# List of Unit Tests
+1. Validate request to Homepage / Index View
+..* Expected Behavior: Render homepage. 
+2. Validate request to /events/ without selected categories.
+..* Expected Behavior: Render paginated listing of all events.
+3. Validate request to /events/ without selected categories and a specific page number.
+..* Expected Behavior: Render specified page of listing of all events.
+3. Validate request to /events/ without selected categories and a page number that is not a number (NaN).
+..* Expected Behavior: Render first page of listing of all events.
+4. Validate request to /events/ with three valid categories.
+..* Expected Behavior: Render paginated and filtered listing of all events. (HTTP Response 200)
+5. Validate request /events/ with only two valid categories.
+..* Expected Behavior: Render homepage / index with relevant error.
+6. Validate request to /events/ with three valid categories, two of which are the same category.
+..* Expected Behavior: Render homepage / index with relevant error.
+7. Validate request to /events/ with three categories, one of which is invalid.
+..* Expected Behavior: Render homepage / index with relevant error.
+8. Validate request to 
+ 
 ## Author
-Alex C. Williams [https://github.com/csalexwilliams/](https://github.com/csalexwilliams/)
+Alex C. Williams [(https://github.com/csalexwilliams/)](https://github.com/csalexwilliams/)
