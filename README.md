@@ -19,7 +19,7 @@ events" at the bottom of the homepage or the results page.
 UnitTests have been implemented for every possible scenario of acceptable and unacceptable input. To run this project's
  tests, navigate to the project directory and run: `python manage.py tests`
  
-# List of Unit Tests
+### List of Unit Tests
 1. Validate request to Homepage / Index View
   * Expected Behavior: Render homepage. 
 2. Validate request to /events/ without selected categories.
