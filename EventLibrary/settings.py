@@ -37,11 +37,9 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.sessions',
 
     # Custom Apps
     'EventSearch',
-    'south',
 )
 
 MIDDLEWARE_CLASSES = (
