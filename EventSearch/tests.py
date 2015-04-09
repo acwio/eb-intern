@@ -16,16 +16,11 @@ class EB_EventSearchTests(TestCase):
             password='eb_password'
         )
 
-
-
         # log the dummy user in
         self.client.login(username='eb_user', password='eb_password')
 
         # set-up the dummy user's session variables
         s = self.client.session
-
-        if 'categories' in s:
-            print 'already exists'
 
         # request each of the categories via the eventbrite api
         raw_response = requests.get("https://www.eventbriteapi.com/v3/categories", params={'token': 'BKKRDKVUVRC5WG4HAVLT'})
@@ -35,6 +30,14 @@ class EB_EventSearchTests(TestCase):
 
         # build and store dictionary for mapping id to category name in user session
         s['categories'] = {cat['id']: cat['name'] for cat in response['categories']}
+
+        # setup the cache facilities
+        s['rel_events'] = {}
+        s['rel_events_list'] = []
+        s['all_events'] = {}
+        s['all_events_list'] = []
+
+        # save the set-up
         s.save()
 
     # Tests for Homepage (i.e. 127.0.0.1:8000)

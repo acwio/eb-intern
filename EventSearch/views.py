@@ -1,5 +1,4 @@
 from django.shortcuts import render
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import requests
 
 def getCategoryList(request):
@@ -21,29 +20,99 @@ def getCategoryList(request):
     return response['categories']
 
 
-def getEventList(**args):
+def getEventList(request, **args):
     '''
     Retrieves event listing via eventbrite api and returns event list. If optional argument 'filter' supplied, only
     events that match a category id in 'filter' argument will be returned.
     :param **args: optional argument 'filter' - a list of category ids.
     :return: a list of events in JSON format
     '''
-    # request the event listing via the eventbrite api
-    raw_response = requests.get("https://www.eventbriteapi.com/v3/events", params={'token': 'BKKRDKVUVRC5WG4HAVLT'})
 
-    # decode the response in JSON
-    response = raw_response.json()
+    # if there was no page specified, default to 1
+    if not 'page' in args:
+        args['page'] = 1
 
     # check for the filter argument
     if 'filter' in args:
+        # if the user's searched for the page already, return the cached page
+        if str(args['page']) in request.session['rel_events']:
+            return request.session['rel_events'][str(args['page'])]
+
         # get the relevant ids
         rel_ids = args['filter']
 
-         # filter relevant events in the response by category id and return as a list
-        return [event for id in rel_ids for event in response['events'] if id == event['category_id']]
+        # make the query for events of a certain category and page
+        raw_response = requests.get("https://www.eventbriteapi.com/v3/events/search/", params={'token': 'BKKRDKVUVRC5WG4HAVLT',
+                                                                                               'categories': rel_ids,
+                                                                                               'page': args['page']})
+        # decode the response in JSON
+        response = raw_response.json()
 
-    # otherwise, return a list of all events
-    return response['events']
+        # verify the user didn't go out of page range
+        if response['pagination']['page_number'] > response['pagination']['page_count']:
+            # the user did go out of range, so we need to query for the last page
+            raw_response = requests.get("https://www.eventbriteapi.com/v3/events/search/",
+                                        params={'token': 'BKKRDKVUVRC5WG4HAVLT',
+                                                'categories': rel_ids,
+                                                'page': response['pagination']['page_count']})
+            # decode the new response in JSON
+            response = raw_response.json()
+
+        # if necessary, store relevant response information for events and pagination in the user's session
+        if not str(args['page']) in request.session['rel_events']:
+            request.session['rel_events'][str(args['page'])] = response['events'], response['pagination']
+            request.session['rel_events_list'].extend(str(args['page']))
+        else:
+            # the visited page is already in cache, so move it to the back of our "queue"
+            request.session['rel_events_list'].insert(len(request.session['rel_events_list']),
+                                                      request.session['rel_events_list'].pop(request.session['rel_events_list'].index(str(args['page']))))
+
+        # remove cached pages if necessary
+        if len(request.session['rel_events']) > 3:
+            # get the first page number from the list and use it as a key to our event dictionary cache
+            del request.session['rel_events'][request.session['rel_events_list'].pop(0)]
+
+    else:
+        # if the user's searched for the page already, return the cached page
+        if str(args['page']) in request.session['all_events']:
+            return request.session['all_events'][str(args['page'])]
+
+        # request the event listing via the eventbrite api
+        raw_response = requests.get("https://www.eventbriteapi.com/v3/events/search/", params={'token': 'BKKRDKVUVRC5WG4HAVLT',
+                                                                                               'page': args['page']})
+        # decode the response in JSON
+        response = raw_response.json()
+
+        # verify the user didn't go out of page range
+        if response['pagination']['page_number'] > response['pagination']['page_count']:
+            # the user did go out of range, so we need to query for the last page
+            raw_response = requests.get("https://www.eventbriteapi.com/v3/events/search/",
+                                        params={'token': 'BKKRDKVUVRC5WG4HAVLT',
+                                                'page': response['pagination']['page_count']})
+            # decode the new response in JSON
+            response = raw_response.json()
+
+        # if necessary, store relevant response information for events and pagination in the user's session
+        if not str(args['page']) in request.session['all_events']:
+            request.session['all_events'][str(args['page'])] = (response['events'], response['pagination'])
+            request.session['all_events_list'].extend(str(args['page']))
+        else:
+            # the visited page is already in cache, so move it to the back of our "queue"
+            request.session['all_events_list'].insert(len(request.session['all_events_list']),
+                                                      request.session['all_events_list'].pop(request.session['all_events_list'].index(str(args['page']))))
+
+        # remove cached pages if necessary
+        if len(request.session['all_events']) > 3:
+            # get the first page number from the list and use it as a key to our event dictionary cache
+            del request.session['all_events'][request.session['all_events_list'].pop(0)]
+
+    # let Django know to save the session
+    request.session.modified = True
+
+    # return:
+    # 1. a list of all events
+    # 2. a dictionary containing pagination information
+    return response['events'], response['pagination']
 
 
 def index(request):
@@ -54,26 +123,27 @@ def index(request):
     :return:    the rendered homepage with a listing of categories.
     '''
 
-    # delete prior rel_events session variable if it exists
-    if 'rel_events' in request.session:
-        del request.session['rel_events']
-
-    # delete prior all_events session variable if it exists
-    if 'all_events' in request.session:
-        del request.session['all_events']
-
-    # delete prior categories session variable if it exists
-    if 'categories' in request.session:
-        del request.session['categories']
+    # delete prior session variables
+    request.session.flush()
 
     # build and store dictionary for mapping id to category name in user session
     categories = getCategoryList(request)
+
+    # create caching facilities
+    request.session['rel_events'] = {}
+    request.session['rel_events_list'] = []
+    request.session['all_events'] = {}
+    request.session['all_events_list'] = []
+    request.session.modified = True
 
     # render the homepage with a listing of the retrieved categories
     return render(request, 'EventSearch/index.html', {'categories': categories})
 
 
 def display_events(request):
+
+    print request.session.items()
+
     # verify the presence of any category selections
     if any(cat in request.GET for cat in ('cat1', 'cat2', 'cat3')):
         # View triggered with category selections
@@ -101,30 +171,23 @@ def display_events(request):
                                                               'form_error': 'Error: One or more of the selected '
                                                                             'categories no longer exists.'})
 
-        # if a rel_events session variable exists, retrieve the relevant events via API
-        if not 'rel_events' in request.session:
-            # get and store the filtered list in the user's session
-            request.session['rel_events'] = getEventList(filter=rel_ids)
+        # check if the user requested a specific page number
+        if 'page' in request.GET:
+            # query for page number of relevant events via Eventbrite API and store relevant information
+            rel_events, pagination = getEventList(request, filter=rel_ids, page=request.GET['page'])
+        else:
+            # query for first page of relevant events via Eventbrite API and store relevant information
+            rel_events, pagination = getEventList(request, filter=rel_ids)
 
-        # get the specified page number
-        page = request.GET.get('page')
-
-        # set-up the paginator to display 5 relevant events per page
-        paginator = Paginator(request.session['rel_events'], 5)
-
-        # try to paginate the list of relevant events
-        try:
-            rel_events = paginator.page(page)
-        except PageNotAnInteger:
-            # if the specified page number isn't a number, render the first page.
-            rel_events = paginator.page(1)
-        except EmptyPage:
-            # if the specified page number is out of range, render last page.
-            rel_events = paginator.page(paginator.num_pages)
+        # compute number of events in previous pages
+        prior_count = (pagination['page_number']-1)*pagination['page_size']
 
         # render with the relevant events with the names and ids of the categories
         return render(request, 'EventSearch/results.html', {'events': rel_events,
-                                                            'event_count': paginator.count,
+                                                            'event_count': pagination['object_count'],
+                                                            'page_number': pagination['page_number'],
+                                                            'num_pages':   pagination['page_count'],
+                                                            'prior_count': prior_count,
                                                             'cat1_name': request.session['categories'][rel_ids[0]],
                                                             'cat2_name': request.session['categories'][rel_ids[1]],
                                                             'cat3_name': request.session['categories'][rel_ids[2]],
@@ -136,26 +199,18 @@ def display_events(request):
         # View triggered by direct URL access
         # (example: eventbrite.com/events)
 
-        # retrieve events, if all_events session variable doesn't exist
-        if not 'all_events' in request.session:
-            request.session['all_events'] = getEventList()
+        # retrieve all the events
+        if 'page' in request.GET:
+            all_events, pagination = getEventList(request, page=request.GET['page'])
+        else:
+            all_events, pagination = getEventList(request)
 
-        # set-up the paginator to display 5 events per page
-        paginator = Paginator(request.session['all_events'], 5)
-
-        # get the specified page number
-        page = request.GET.get('page')
-
-        # try to paginate the list of relevant events
-        try:
-            all_events = paginator.page(page)
-        except PageNotAnInteger:
-            # if the specified page number isn't a number, render the first page.
-            all_events = paginator.page(1)
-        except EmptyPage:
-            # if the specified page number is out of range, render last page.
-            all_events = paginator.page(paginator.num_pages)
+        # compute number of events in previous pages
+        prior_count = (pagination['page_number']-1)*pagination['page_size']
 
         # render with all events
         return render(request, 'EventSearch/results.html', {'events': all_events,
-                                                            'event_count': paginator.count})
+                                                            'event_count': pagination['object_count'],
+                                                            'page_number': pagination['page_number'],
+                                                            'num_pages':   pagination['page_count'],
+                                                            'prior_count': prior_count})

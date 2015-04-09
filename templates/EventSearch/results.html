@@ -19,7 +19,7 @@
                <strong>{{ event_count }} events found.</strong>
             </div>
             <div class="header_right">
-               <strong>Page {{ events.number }} of {{ events.paginator.num_pages }}</strong>
+               <strong>Page {{ page_number }} of {{ num_pages }}</strong>
             </div>
          </div>
          {% if events %}
@@ -27,7 +27,7 @@
              <hr />
              <div>
                 <div class="eb_result_name">
-                   {{ forloop.counter0|add:events.start_index }}. <strong><a href="{{ event.url }}">{{ event.name.text }}</a></strong>
+                   {{ prior_count|add:forloop.counter }}. <strong><a href="{{ event.url }}">{{ event.name.text }}</a></strong>
                 </div>
                 <div class="eb_result_meta">
                    Category: {{ event.category.name }} <br />
@@ -60,21 +60,21 @@
       <div class="pagination">
          <center>
             <span class="step-links">
-            {% if events.has_previous %}
+            {% if page_number != 1 %}
                 {% if cat1_id and cat2_id and cat3_id %}
-                    [<a href="?cat1={{ cat1_id }}&cat2={{ cat2_id }}&cat3={{ cat3_id }}&page={{ events.previous_page_number }}">Previous</a>]
+                    [<a href="?cat1={{ cat1_id }}&cat2={{ cat2_id }}&cat3={{ cat3_id }}&page={{ page_number|add:-1 }}">Previous</a>]
                 {% else %}
-                    [<a href="?page={{ events.previous_page_number }}">Previous</a>]
+                    [<a href="?page={{ page_number|add:-1 }}">Previous</a>]
                 {% endif %}
             {% endif %}
             <span class="current">
-            <strong>Page {{ events.number }} of {{ events.paginator.num_pages }}</strong>
+            <strong>Page {{ page_number }} of {{ num_pages }}</strong>
             </span>
-            {% if events.has_next %}
+            {% if page_number < num_pages %}
                 {% if cat1_id and cat2_id and cat3_id %}
-                    [<a href="?cat1={{ cat1_id }}&cat2={{ cat2_id }}&cat3={{ cat3_id }}&page={{ events.next_page_number }}">Next</a>]
+                    [<a href="?cat1={{ cat1_id }}&cat2={{ cat2_id }}&cat3={{ cat3_id }}&page={{ page_number|add:1 }}">Next</a>]
                 {% else %}
-                    [<a href="?page={{ events.next_page_number }}">Next</a>]
+                    [<a href="?page={{ page_number|add:1 }}">Next</a>]
                 {% endif %}
             {% endif %}
             </span>
